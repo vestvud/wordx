@@ -1,0 +1,11 @@
+body, html {
+    padding: 0px;
+    margin: 0px;
+}
+
+.form {
+    width: 500px;
+    padding: 50px;
+    box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.5);
+    margin: 50px auto;
+}
