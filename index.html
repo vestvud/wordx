@@ -1,42 +1,45 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>wordx</title>
-    <meta charset="utf-8"/>
-    <link rel="stylesheet" href="css/style.css"/>
-
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-    <script type="text/javascript" src="/js/lib/zip.js"></script>
+<html><head>
+    <meta charset="utf-8">
+    <title>Read a zip file demo</title>
+    <link rel="stylesheet" href="css/default.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Maven+Pro|Muli|Droid+Sans+Mono|Istok+Web" rel="stylesheet" type="text/css">
 </head>
+
 <body>
-    <div id="container">
+<div id="container">
 
-        <h2>wordx templating</h2>
-
-        <ol id="demo-container">
-            <li>
-                <label>
-                    <span class="form-label">Выберите zip-файл:</span>
-                    <input type="file" accept="application/zip" id="file-input">
-                </label>
-            </li>
-            <li>
-                <label>
-                    <span class="form-label">Выбрать тип файла:</span>
-                    <select id="creation-method-input">
-                        <option value="File">FILE</option>
-                        <option value="Blob">BLOB</option>
-                    </select>
-                </label>
-            </li>
-            <li>
-                <span class="form-label">Загрузить</span>
-                <ul id="file-list">
-                </ul>
-            </li>
-        </ol>
+    <div class="description">
+        Шаблонизатор
+        <hr>
     </div>
 
-    <script src="js/script.js"></script>
-</body>
-</html>
+    <ol id="demo-container">
+        <li>
+            <label>
+                <span class="form-label">Выбрать файл</span>
+                <input type="file" accept="application/zip" id="file-input">
+            </label>
+        </li>
+        <li>
+            <label>
+                <span class="form-label">Выберите тип</span>
+                <select id="creation-method-input">
+                    <option value="Blob">RAM</option>
+                    <option value="File">HDD</option>
+                </select>
+            </label>
+        </li>
+        <li>
+            <span class="form-label">Файлы</span>
+            <ul id="file-list">
+            </ul>
+        </li>
+    </ol>
+
+</div>
+
+<script type="text/javascript" src="js/lib/zip.js"></script>
+<script type="text/javascript" src="js/script.js"></script>
+
+</body></html>
