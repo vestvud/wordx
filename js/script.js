@@ -1,111 +1,106 @@
 (function(obj) {
 
-	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem;
+    function template(data) {
+        $(".j-template").html(data);
 
-	function onerror(message) {
-		alert(message);
-	}
+        var myRe = /{((?:<[^>]+?>)*?)([a-zA-Z]+)((?:<[^>]+?>)*?)}/g,
+            arr = [],
+            tmpl = "";
 
-	function createTempFile(callback) {
-		var tmpFilename = "tmp.dat";
-		requestFileSystem(TEMPORARY, 4 * 1024 * 1024 * 1024, function(filesystem) {
-			function create() {
-				filesystem.root.getFile(tmpFilename, {
-					create : true
-				}, function(zipFile) {
-					callback(zipFile);
-				});
-			}
+        while (match = myRe.exec(data) ) {
+            arr.push({
+                position: match.index,
+                skipBefore: match[1].length,
+                skipAfter: match[3].length,
+                token: match[2]
+            });
+        }
 
-			filesystem.root.getFile(tmpFilename, null, function(entry) {
-				entry.remove(create, create);
-			}, create);
-		});
-	}
+        for (var k = 0; k < arr.length; k++) {
+            tmpl = tmpl + "<div>" + arr[k].token + "<input class='j-field' data-id='" + arr[k].token + "'></div>";
+        }
+        tmpl = tmpl + "<div><button class='j-save'>Сохранить!</button></div>";
+        $(".j-fields").append(tmpl);
 
-	var model = (function() {
-		var URL = obj.webkitURL || obj.mozURL || obj.URL;
+        save(data, arr);
+    }
 
-		return {
-			getEntries : function(file, onend) {
-				zip.createReader(new zip.BlobReader(file), function(zipReader) {
-					zipReader.getEntries(onend);
-				}, onerror);
-			},
-			getEntryFile : function(entry, creationMethod, onend, onprogress) {
-				var writer, zipFileEntry;
+    function save(data, arr) {
+        $(".j-save").on("click", function(e){
+            e.preventDefault();
+            var obj = {}, fileNew = "";
 
-				function getData() {
-					entry.getData(writer, function(blob) {
-						var blobURL = creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL();
-						onend(blobURL);
-					}, onprogress);
-				}
+            $(".j-field").each(function(){
+                var $this = $(this),
+                    id = $(this).data("id"),
+                    val = $(this).val();
 
-				if (creationMethod == "Blob") {
-					writer = new zip.BlobWriter();
-					getData();
-				} else {
-					createTempFile(function(fileEntry) {
-						zipFileEntry = fileEntry;
-						writer = new zip.FileWriter(zipFileEntry);
-						getData();
-					});
-				}
-			}
-		};
-	})();
+                obj[id] = val;
+            });
+
+            var pos, data2;
+            arr.reverse().forEach(function(entry){
+                pos = 0;
+                data2 = data.substring(pos, entry.position);
+                pos += entry.position + 1;
+                data2 += data.substr(pos, entry.skipBefore);
+                pos += entry.skipBefore + entry.token.length;
+                data2 += obj[entry.token] + data.substr(pos, entry.skipAfter);
+                pos += entry.skipAfter;
+                data2 += data.substr(pos + 1);
+
+                data = data2;
+            });
+
+            $(".j-data").append(data);
+        })
+    }
 
 	(function() {
 		var fileInput = document.getElementById("file-input");
-		var unzipProgress = document.createElement("progress");
-		var fileList = document.getElementById("file-list");
-		var creationMethodInput = document.getElementById("creation-method-input");
 
-		function download(entry, li, a) {
-			model.getEntryFile(entry, creationMethodInput.value, function(blobURL) {
-				var clickEvent = document.createEvent("MouseEvent");
-				if (unzipProgress.parentNode)
-					unzipProgress.parentNode.removeChild(unzipProgress);
-				unzipProgress.value = 0;
-				unzipProgress.max = 0;
-				clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-				a.href = blobURL;
-				a.download = entry.filename;
-				a.dispatchEvent(clickEvent);
-			}, function(current, total) {
-				unzipProgress.value = current;
-				unzipProgress.max = total;
-				li.appendChild(unzipProgress);
-			});
-		}
-
-		if (typeof requestFileSystem == "undefined")
-			creationMethodInput.options.length = 1;
 		fileInput.addEventListener('change', function() {
-			fileInput.disabled = true;
-			model.getEntries(fileInput.files[0], function(entries) {
-				fileList.innerHTML = "";
-				entries.forEach(function(entry) {
-					var li = document.createElement("li");
-					var a = document.createElement("a");
-					a.textContent = entry.filename;
-                    if (entry.filename === "word/document.xml") {
-                        console.log(entry);
+            zip.createReader(new zip.BlobReader(fileInput.files[0]), function(reader) {
+
+                reader.getEntries(function(entries) {
+                    if (entries.length) {
+
+                        entries.forEach(function(elem, i){
+                            if (elem.filename === "word/document.xml") {
+                                elem.getData(new zip.TextWriter(), function(data) {
+                                    template(data);
+                                    reader.close(function() {
+                                        console.log("haha");
+                                    });
+
+                                }, function(current, total) {
+                                    // onprogress callback
+                                });
+                            }
+                        })
                     }
-					a.href = "#";
-					a.addEventListener("click", function(event) {
-						if (!a.download) {
-							download(entry, li, a);
-							event.preventDefault();
-							return false;
-						}
-					}, false);
-					li.appendChild(a);
-					fileList.appendChild(li);
-				});
-			});
+                });
+            }, function(error) {
+            });
 		}, false);
 	})();
+
+    // use a BlobWriter to store the zip into a Blob object
+    zip.createWriter(new zip.BlobWriter(), function(writer) {
+
+        writer.add("filename.txt", new zip.TextReader("test!"), function() {
+            // onsuccess callback
+
+            // close the zip writer
+            writer.close(function(blob) {
+                // blob contains the zip file as a Blob object
+
+            });
+        }, function(currentIndex, totalIndex) {
+            // onprogress callback
+        });
+    }, function(error) {
+        // onerror callback
+    });
 
 })(this);

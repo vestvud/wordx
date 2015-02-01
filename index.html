@@ -14,31 +14,18 @@
         <hr>
     </div>
 
-    <ol id="demo-container">
-        <li>
-            <label>
-                <span class="form-label">Выбрать файл</span>
-                <input type="file" accept="application/zip" id="file-input">
-            </label>
-        </li>
-        <li>
-            <label>
-                <span class="form-label">Выберите тип</span>
-                <select id="creation-method-input">
-                    <option value="Blob">RAM</option>
-                    <option value="File">HDD</option>
-                </select>
-            </label>
-        </li>
-        <li>
-            <span class="form-label">Файлы</span>
-            <ul id="file-list">
-            </ul>
-        </li>
+    <ol class="container">
+        <div>
+            <span class="form-label">Выбрать файл</span>
+            <input class="j-file-inp" type="file" accept="application/zip" id="file-input">
+        </div>
+        <div class="j-fields"></div>
+        <div class="j-template"></div>
+        <div class="j-data"></div>
     </ol>
 
 </div>
-
+<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
 <script type="text/javascript" src="js/lib/zip.js"></script>
 <script type="text/javascript" src="js/script.js"></script>
 
