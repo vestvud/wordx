@@ -29,7 +29,11 @@ var Ui = function(){
         this._chooseHandler = callback;
 
         $('#file-input').on('change', function(e) {
-            callback($(this)[0].files[0]);
+            var input = $(this)[0];
+            if (!input.files.length) {
+                return;
+            }
+            callback(input.files[0]);
         });
     };
     Ui.prototype.displayVariables = function(vars, callback){
@@ -51,14 +55,16 @@ var Ui = function(){
                 callback(newVars);
             });
     };
-    Ui.prototype.reset = function(){
+    Ui.prototype.reset = function(keepFileInput){
         var input = '<input class="j-file-inp" type="file" accept="application/zip" id="file-input">';
         $('.j-fields')
             .empty()
             .off('.wordx');
 
-        $('#file-input').replaceWith(input);
-        this.attachChooseHandler(this._chooseHandler);
+        if (!keepFileInput) {
+            $('#file-input').replaceWith(input);
+            this.attachChooseHandler(this._chooseHandler);
+        }
     };
 
 

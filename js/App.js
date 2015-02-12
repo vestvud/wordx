@@ -6,12 +6,17 @@ var App = function(){
         this._ui = new Ui;
         this._init();
     }
+    App.KEEP_FILE_INPUT = true;
     App.prototype._init = function(){
         var that = this;
-
+        this.busy = false;
         this.fs = new zip.fs.FS();
 
         this._ui.attachChooseHandler(function(file) {
+            if (that.busy) {
+                that.reset(App.KEEP_FILE_INPUT);
+            }
+            that.busy = true;
             var name;
             if (file.name) {
                 name = file.name.replace(/(\.[^.]+)?$/, '_result$1');
@@ -81,10 +86,10 @@ var App = function(){
 
         return text;
     };
-    App.prototype.reset = function(){
+    App.prototype.reset = function(keepFileInput){
         this.fs = new zip.fs.FS();
-        console.log(this.fs);
-        this._ui.reset();
+        this._ui.reset(keepFileInput);
+        this.busy = false;
     };
 
     return App;
