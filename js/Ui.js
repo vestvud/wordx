@@ -10,7 +10,7 @@ var Ui = function(){
             return null;
         }
     };
-    Ui.prototype.showSaveDialog = function(blob, fileName){
+    Ui.prototype.showSaveDialog = function(blob, fileName, callback){
         var blobUrl = this._createObjectUrl(blob),
             downloadLink = document.createElement('a');
 
@@ -22,18 +22,16 @@ var Ui = function(){
         downloadLink.click();
         setTimeout(function(){
             $(downloadLink).remove();
+            if (callback) callback();
         }, 0);
     };
     Ui.prototype.attachChooseHandler = function(callback){
-        var fileInput = document.getElementById('file-input');
+        this._chooseHandler = callback;
 
-        fileInput.addEventListener('change', function() {
-            callback(fileInput.files[0]);
-        }, false);
+        $('#file-input').on('change', function(e) {
+            callback($(this)[0].files[0]);
+        });
     };
-    //Ui.prototype.attachSaveHandler = function(callback){
-    //    this._saveHandler = callback;
-    //};
     Ui.prototype.displayVariables = function(vars, callback){
         var tmpl = '';
         for (var k = 0; k < vars.length; k++) {
@@ -42,7 +40,7 @@ var Ui = function(){
         tmpl = tmpl + "<div><button class='j-save'>Сохранить!</button></div>";
         $('.j-fields')
             .append(tmpl)
-            .on('click', '.j-save', function(e){
+            .on('click.wordx', '.j-save', function(e){
                 e.preventDefault();
 
                 var newVars = {};
@@ -52,6 +50,15 @@ var Ui = function(){
 
                 callback(newVars);
             });
+    };
+    Ui.prototype.reset = function(){
+        var input = '<input class="j-file-inp" type="file" accept="application/zip" id="file-input">';
+        $('.j-fields')
+            .empty()
+            .off('.wordx');
+
+        $('#file-input').replaceWith(input);
+        this.attachChooseHandler(this._chooseHandler);
     };
 
 

@@ -1,6 +1,6 @@
 var App = function(){
     var FILE_NAME = 'word/document.xml',
-        DOWNLOAD_FILE_NAME = 'result.docx';
+        DEFAULT_DOWNLOAD_NAME = 'result.docx';
 
     function App() {
         this._ui = new Ui;
@@ -12,13 +12,22 @@ var App = function(){
         this.fs = new zip.fs.FS();
 
         this._ui.attachChooseHandler(function(file) {
+            var name;
+            if (file.name) {
+                name = file.name.replace(/(\.[^.]+)?$/, '_result$1');
+            } else {
+                name = DEFAULT_DOWNLOAD_NAME;
+            }
+
             that.fs.importBlob(file, function(){
                 that._processFile(function(text, vars){
                     that._ui.displayVariables(vars, function(vars){
                         text = that._replaceVars(text, vars);
                         that._replaceFile(text);
                         that._getWordxBlob(function(blob){
-                            that._ui.showSaveDialog(blob, DOWNLOAD_FILE_NAME);
+                            that._ui.showSaveDialog(blob, name, function(){
+                                that.reset();
+                            });
                         });
                     });
                 });
@@ -67,12 +76,15 @@ var App = function(){
         var myRe = /{((?:<[^>]+?>)*?)([a-zA-Z]+)((?:<[^>]+?>)*?)}/g;
 
         text = text.replace(myRe, function(full, before, varname, after){
-            //var value = prompt('Value of ' + varname + ' is?');
-            //return before + value + after;
             return before + vars[varname] + after;
         });
 
         return text;
+    };
+    App.prototype.reset = function(){
+        this.fs = new zip.fs.FS();
+        console.log(this.fs);
+        this._ui.reset();
     };
 
     return App;
