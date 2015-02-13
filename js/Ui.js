@@ -36,9 +36,9 @@ var Ui = function(){
         });
     };
     Ui.prototype.displayVariables = function(vars, callback){
-        var tmpl = '';
+        var tmpl = '<span class="instuction">Заполните ключевые слова:</span>';
         for (var k = 0; k < vars.length; k++) {
-            tmpl = tmpl + "<div>" + vars[k] + "<input class='j-field' id='var_" + vars[k] + "'></div>";
+            tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input class='j-field field' id='var_" + vars[k] + "'></div>";
         }
         tmpl = tmpl + "<div><button class='j-save'>Сохранить!</button></div>";
         $('.j-fields')

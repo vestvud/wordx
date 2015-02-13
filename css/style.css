@@ -28,7 +28,6 @@
 }
 
 .form-label {
-	width: 270px;
 	display: inline-block;
 	font-size: 12pt;
 }
@@ -97,4 +96,25 @@ progress {
 	top: 1px;
 	opacity: .7;
 	width: 80px;
+}
+
+.fields {
+	margin-top: 30px;
+}
+
+.fields div {
+	margin: 18px 0px;
+}
+
+.field {
+	margin-left: 12px;
+	height: 25px;
+}
+
+.instuction {
+	font-size: 18px;
+}
+
+.wrapper {
+	text-align: right;
 }
