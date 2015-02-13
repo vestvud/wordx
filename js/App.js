@@ -1,6 +1,7 @@
 var App = function(){
     var FILE_NAME = 'word/document.xml',
-        DEFAULT_DOWNLOAD_NAME = 'result.docx';
+        DEFAULT_DOWNLOAD_NAME = 'result.docx',
+        WORDX_FILE_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
     function App() {
         this._ui = new Ui;
@@ -23,6 +24,7 @@ var App = function(){
             } else {
                 name = DEFAULT_DOWNLOAD_NAME;
             }
+            that._fileType = file._type || WORDX_FILE_TYPE;
 
             that.fs.importBlob(file, function(){
                 that._processFile(function(text, vars){
@@ -48,7 +50,15 @@ var App = function(){
     };
 
     App.prototype._getWordxBlob = function(callback){
+        var that = this;
+
         this.fs.exportBlob(function(blob){
+            if (that._fileType) {
+                //ставим blob'у обратно изначальный тип файла, т. к. exportBlob возвращает zip
+                blob = new Blob([blob], {
+                    type: that._fileType
+                });
+            }
             callback(blob);
         }, null, null);
     };

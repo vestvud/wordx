@@ -13,7 +13,6 @@ var Ui = function(){
     Ui.prototype.showSaveDialog = function(blob, fileName, callback){
         var blobUrl = this._createObjectUrl(blob),
             downloadLink = document.createElement('a');
-
         downloadLink.style.display = 'none';
         document.body.appendChild(downloadLink);
         downloadLink.href = blobUrl;
