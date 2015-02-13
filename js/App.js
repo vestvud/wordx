@@ -39,7 +39,7 @@ var App = function(){
                     });
                 });
             }, function(){
-                console.log('Мы все останемся без печенек!');
+                alert('Выбран неправильный файл!');
             });
         })
     };
@@ -68,7 +68,7 @@ var App = function(){
 
         this.file = this.fs.find(FILE_NAME);
         if (!this.file) {
-            console.log('А еще у нас выпала вся шерстка!');
+            alert('Файла не существует!');
             return false;
         }
         this.file.getText(function(text){
