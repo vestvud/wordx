@@ -110,6 +110,9 @@ progress {
 	margin-left: 12px;
 	height: 25px;
 }
+.field_file {
+    margin-left: 12px;
+}
 
 .instuction {
 	font-size: 18px;

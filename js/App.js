@@ -29,11 +29,13 @@ var App = function(){
             that.fs.importBlob(file, function(){
                 that._processFile(function(text, vars){
                     that._ui.displayVariables(vars, function(vars){
-                        text = that._replaceVars(text, vars);
-                        that._replaceFile(text);
-                        that._getWordxBlob(function(blob){
-                            that._ui.showSaveDialog(blob, name, function(){
-                                that.reset();
+                        that._injectImages(vars, function(rid){
+                            text = that._replaceVars(text, vars, rid);
+                            that._replaceFile(text);
+                            that._getWordxBlob(function(blob){
+                                that._ui.showSaveDialog(blob, name, function(){
+                                    that.reset();
+                                });
                             });
                         });
                     });
@@ -43,12 +45,67 @@ var App = function(){
             });
         })
     };
+    App.prototype._addContentType = function(type, callback){
+        var that = this;
+        var filename = "[Content_Types].xml";
+        var contentType = '<Default Extension="jpg" ContentType="image/jpeg" />';
 
+        var file = this.fs.find(filename);
+
+        if (!file) {
+            alert('Файла не существует!');
+            return false;
+        }
+        file.getText(function(text){
+            if (text.indexOf(contentType)===-1) {
+                text = text.replace(/<\/Types>/, contentType + '</Types>');
+                that.fs.remove(file);
+                that.fs.root.addText(filename, text);
+            }
+            callback();
+        });
+    };
+    App.prototype._addRels = function(imgName, callback){
+        var that = this;
+        var filename = "word/_rels/document.xml.rels";
+
+        var file = this.fs.find(filename);
+
+        if (!file) {
+            alert('Файла не существует!');
+            return false;
+        }
+        file.getText(function(text){
+            var ridRe = /Id\s*=\s*"rId(\d+)"/g,
+                maxId = 0;
+            if (text.indexOf(contentType) === -1) {
+                while ((match = ridRe.exec(text)) != null) {
+                    maxId = Math.max(maxId, +match[1]);
+                }
+
+                var contentType = '<Relationship Id="rId'+ (++maxId) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../' + imgName + '"/>';
+
+                text = text.replace(/<\/Relationships>/, contentType + '</Relationships>');
+                that.fs.remove(file);
+                that.fs.root.addText(filename, text);
+            }
+            callback(maxId);
+        });
+    };
+    App.prototype._injectImages = function(vars, callback){
+        if (!vars.img) {
+            return;
+        }
+        var blob = new Blob([vars.img], {type: vars.img.type});
+        this.fs.root.addBlob(vars.img.name, blob);
+        this._addContentType(vars.img.type, function(){
+            this._addRels(vars.img.name, callback);
+        }.bind(this));
+    };
     App.prototype._replaceFile = function(text){
         this.fs.remove(this.file);
         this.fs.root.addText(FILE_NAME, text);
     };
-
     App.prototype._getWordxBlob = function(callback){
         var that = this;
 
@@ -62,7 +119,6 @@ var App = function(){
             callback(blob);
         }, null, null);
     };
-
     App.prototype._processFile = function(callback){
         var that = this;
 
@@ -87,10 +143,19 @@ var App = function(){
         }
         return vars;
     };
-    App.prototype._replaceVars = function(text, vars){
+    App.prototype._replaceVars = function(text, vars, rid){
         var myRe = /{((?:<[^>]+?>)*?)([a-zA-Z]+)((?:<[^>]+?>)*?)}/g;
 
         text = text.replace(myRe, function(full, before, varname, after){
+            if (varname === 'img') {
+                var tmpl = '<w:pict>' +
+                    '<v:shape id="myShape1" type="#_x0000_t75">' +
+                        '<v:imagedata r:id="rId' + rid + '"/>' +
+                        '</v:shape>' +
+                    '</w:pict>';
+
+                return before + tmpl + after;
+            }
             return before + vars[varname] + after;
         });
 

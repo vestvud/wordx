@@ -38,9 +38,14 @@ var Ui = function(){
     Ui.prototype.displayVariables = function(vars, callback){
         var tmpl = '<span class="instuction">Заполните ключевые слова:</span>';
         for (var k = 0; k < vars.length; k++) {
-            tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input class='j-field field' id='var_" + vars[k] + "'></div>";
+            if (vars[k] === "img") {
+                tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input type='file' accept='image/jpeg,image/png' class='j-field field_file' id='var_" + vars[k] + "'></div>";
+            } else {
+                tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input class='j-field field' id='var_" + vars[k] + "'></div>";
+            }
         }
         tmpl = tmpl + "<div><button class='j-save'>Сохранить!</button></div>";
+
         $('.j-fields')
             .append(tmpl)
             .on('click.wordx', '.j-save', function(e){
@@ -48,7 +53,16 @@ var Ui = function(){
 
                 var newVars = {};
                 vars.forEach(function(varname){
-                    newVars[varname] = $('#var_' + varname).val();
+                    if (varname === "img") {
+                        var files = $('#var_' + varname).get(0).files;
+                        if (files.length) {
+                            newVars[varname] = files[0];
+                        } else {
+                            newVars[varname] = null;
+                        }
+                    } else {
+                        newVars[varname] = $('#var_' + varname).val();
+                    }
                 });
 
                 callback(newVars);
