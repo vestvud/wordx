@@ -29,8 +29,8 @@ var App = function(){
             that.fs.importBlob(file, function(){
                 that._processFile(function(text, vars){
                     that._ui.displayVariables(vars, function(vars){
-                        that._injectImages(vars, function(rid){
-                            text = that._replaceVars(text, vars, rid);
+                        that._injectImages(vars, function(){
+                            text = that._replaceVars(text, vars);
                             that._replaceFile(text);
                             that._getWordxBlob(function(blob){
                                 that._ui.showSaveDialog(blob, name, function(){
@@ -45,10 +45,10 @@ var App = function(){
             });
         })
     };
-    App.prototype._addContentType = function(type, callback){
+    App.prototype._addContentTypes = function(types, callback){
         var that = this;
         var filename = "[Content_Types].xml";
-        var contentType = '<Default Extension="jpg" ContentType="image/jpeg" />';
+        var contentTypes;
 
         var file = this.fs.find(filename);
 
@@ -56,16 +56,27 @@ var App = function(){
             alert('Файла не существует!');
             return false;
         }
+
+        types = types
+            .reduce(function(uniqueTypes, typeObj){
+                uniqueTypes[typeObj.extension] = typeObj.type;
+                return uniqueTypes;
+            }, {});
+
+        contentTypes = Object.getOwnPropertyNames(types)
+            .map(function(extension){
+                return '<Default Extension="' + extension + '" ContentType="' + types[extension] + '" />';
+            })
+            .join('');
+
         file.getText(function(text){
-            if (text.indexOf(contentType)===-1) {
-                text = text.replace(/<\/Types>/, contentType + '</Types>');
-                that.fs.remove(file);
-                that.fs.root.addText(filename, text);
-            }
+            text = text.replace(/<\/Types>/, contentTypes + '</Types>');
+            that.fs.remove(file);
+            that.fs.root.addText(filename, text);
             callback();
         });
     };
-    App.prototype._addRels = function(imgName, callback){
+    App.prototype._addRels = function(imgVars, callback){
         var that = this;
         var filename = "word/_rels/document.xml.rels";
 
@@ -75,32 +86,68 @@ var App = function(){
             alert('Файла не существует!');
             return false;
         }
+
         file.getText(function(text){
             var ridRe = /Id\s*=\s*"rId(\d+)"/g,
-                maxId = 0;
-            if (text.indexOf(contentType) === -1) {
-                while ((match = ridRe.exec(text)) != null) {
-                    maxId = Math.max(maxId, +match[1]);
-                }
+                maxId = 0,
+                relations;
 
-                var contentType = '<Relationship Id="rId'+ (++maxId) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../' + imgName + '"/>';
-
-                text = text.replace(/<\/Relationships>/, contentType + '</Relationships>');
-                that.fs.remove(file);
-                that.fs.root.addText(filename, text);
+            while ((match = ridRe.exec(text)) != null) {
+                maxId = Math.max(maxId, +match[1]);
             }
-            callback(maxId);
+
+            relations = imgVars
+                .map(function(imgVar){
+                    imgVar.rid = ++maxId;
+                    return '<Relationship Id="rId'+ (imgVar.rid) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../' + imgVar.uniqueName + '"/>';
+                })
+                .join('');
+
+            text = text.replace(/<\/Relationships>/, relations + '</Relationships>');
+            that.fs.remove(file);
+            that.fs.root.addText(filename, text);
+
+            callback(imgVars);
         });
     };
     App.prototype._injectImages = function(vars, callback){
-        if (!vars.img) {
+        var that = this,
+            imgVars = Object.getOwnPropertyNames(vars)
+                .filter(function(varName){
+                    //отбираем только переменные-картинки, и только если они были заданы
+                    return varName.indexOf('img_') === 0 && vars[varName] != null;
+                })
+                .map(function(varName){
+                    return vars[varName];
+                }),
+            contentTypes;
+
+        //нет переменных-картинок
+        if (!imgVars.length) {
+            callback();
             return;
         }
-        var blob = new Blob([vars.img], {type: vars.img.type});
-        this.fs.root.addBlob(vars.img.name, blob);
-        this._addContentType(vars.img.type, function(){
-            this._addRels(vars.img.name, callback);
-        }.bind(this));
+
+        //делаем имена файлов картинок уникальными
+        imgVars
+            .forEach(function(imgVar, idx){
+                imgVar.uniqueName = imgVar.name.replace(/(\.[^\.]+)$/, '') + idx + RegExp.$1;
+            });
+
+        contentTypes = imgVars
+            .map(function(imgVar){
+                var blob = new Blob([imgVar], {type: imgVar.type}),
+                    extension = imgVar.uniqueName.replace(/^.*\.([^\.]+)$/, '$1');
+                that.fs.root.addBlob(imgVar.uniqueName, blob);
+                return {
+                    extension: extension,
+                    type: imgVar.type
+                };
+            });
+
+        this._addContentTypes(contentTypes, function(){
+            that._addRels(imgVars, callback);
+        });
     };
     App.prototype._replaceFile = function(text){
         this.fs.remove(this.file);
@@ -135,7 +182,7 @@ var App = function(){
         return true;
     };
     App.prototype._findVars = function(text){
-        var myRe = /{(?:<[^>]+?>)*?([a-zA-Z]+)(?:<[^>]+?>)*?}/g,
+        var myRe = /{(?:<[^>]+?>)*?([a-zA-Z][a-zA-Z_]*)(?:<[^>]+?>)*?}/g,
             vars = [],
             match;
         while ((match = myRe.exec(text)) != null) {
@@ -144,19 +191,28 @@ var App = function(){
         return vars;
     };
     App.prototype._replaceVars = function(text, vars, rid){
-        var myRe = /{((?:<[^>]+?>)*?)([a-zA-Z]+)((?:<[^>]+?>)*?)}/g;
+        var myRe = /{((?:<[^>]+?>)*?)([a-zA-Z][a-zA-Z_]*)((?:<[^>]+?>)*?)}/g;
 
         text = text.replace(myRe, function(full, before, varname, after){
-            if (varname === 'img') {
-                var tmpl = '<w:pict>' +
-                    '<v:shape id="myShape1" type="#_x0000_t75">' +
-                        '<v:imagedata r:id="rId' + rid + '"/>' +
+            var tmpl;
+
+            //не строка - значит картинка
+            if (typeof vars[varname] !== 'string') {
+                //картинка не была выбрана - вставляем пустоту
+                if (vars[varname] == null) {
+                    tmpl = '';
+                } else {
+                    tmpl = '<w:pict>' +
+                        '<v:shape id="myShape' + vars[varname].rid + '">' +
+                        '<v:imagedata r:id="rId' + vars[varname].rid + '"/>' +
                         '</v:shape>' +
-                    '</w:pict>';
+                        '</w:pict>';
+                }
 
                 return before + tmpl + after;
+            } else {
+                return before + vars[varname] + after;
             }
-            return before + vars[varname] + after;
         });
 
         return text;

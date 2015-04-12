@@ -36,9 +36,10 @@ var Ui = function(){
         });
     };
     Ui.prototype.displayVariables = function(vars, callback){
-        var tmpl = '<span class="instuction">Заполните ключевые слова:</span>';
+        var tmpl = '<span class="instuction">Заполните ключевые слова:</span>',
+            imgVarRegexp = /^img_.+$/i;
         for (var k = 0; k < vars.length; k++) {
-            if (vars[k] === "img") {
+            if (imgVarRegexp.test(vars[k])) {
                 tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input type='file' accept='image/jpeg,image/png' class='j-field field_file' id='var_" + vars[k] + "'></div>";
             } else {
                 tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input class='j-field field' id='var_" + vars[k] + "'></div>";
@@ -50,10 +51,10 @@ var Ui = function(){
             .append(tmpl)
             .on('click.wordx', '.j-save', function(e){
                 e.preventDefault();
-
+                console.log('saving');
                 var newVars = {};
                 vars.forEach(function(varname){
-                    if (varname === "img") {
+                    if (imgVarRegexp.test(varname)) {
                         var files = $('#var_' + varname).get(0).files;
                         if (files.length) {
                             newVars[varname] = files[0];
@@ -64,7 +65,8 @@ var Ui = function(){
                         newVars[varname] = $('#var_' + varname).val();
                     }
                 });
-
+                console.log('saving2');
+                console.log(newVars);
                 callback(newVars);
             });
     };
