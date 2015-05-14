@@ -226,7 +226,7 @@ var App = function(){
                         '</w:fldChar>' +
                     '</w:r>' +
                     '<w:r>' +
-                        '<w:instrText xml:space="preserve"/>FORMCHECKBOX</w:instrText>' +
+                        '<w:instrText xml:space="preserve">FORMCHECKBOX</w:instrText>' +
                     '</w:r>' +
                     '<w:r>' +
                         '<w:fldChar w:fldCharType="separate"/>' +
