@@ -210,6 +210,40 @@ var App = function(){
                 }
 
                 return before + tmpl + after;
+            //чекбокс
+            } else if (/^checkbox_/i.test(varname)) {
+                tmpl =
+                '<w:p>' +
+                    '<w:r>' +
+                        '<w:fldChar w:fldCharType="begin">' +
+                            '<w:ffData w:enabled="">' +
+                                '<w:name w:val="' + vars[varname] + '"/>' +
+                                '<w:calcOnExit w:val="0"/>' +
+                                '<w:checkBox w:sizeAuto="">' +
+                                    '<w:default w:val="' + !!(vars[varname]) + '"/>' +
+                                '</w:checkBox>' +
+                            '</w:ffData>' +
+                        '</w:fldChar>' +
+                    '</w:r>' +
+                    '<w:r>' +
+                        '<w:instrText xml:space="preserve"/>FORMCHECKBOX</w:instrText>' +
+                    '</w:r>' +
+                    '<w:r>' +
+                        '<w:fldChar w:fldCharType="separate"/>' +
+                    '</w:r>' +
+                    '<w:r>' +
+                        '<w:fldChar w:fldCharType="end"/>' +
+                    '</w:r>' +
+                    '<w:r>' +
+                        '<w:rPr>' +
+                            '<w:rFonts w:ascii="MS Gothic" w:eastAsia="MS Gothic" w:hAnsi="MS Gothic" w:hint="eastAsia"/>' +
+                        '</w:rPr>' +
+                        '<w:t xml:space="preserve"></w:t>' + //какой-то текст тут
+                    '</w:r>' +
+                '</w:p>';
+
+                return before + tmpl + after;
+            //значение
             } else {
                 return before + vars[varname] + after;
             }

@@ -37,10 +37,13 @@ var Ui = function(){
     };
     Ui.prototype.displayVariables = function(vars, callback){
         var tmpl = '<span class="instuction">Заполните ключевые слова:</span>',
-            imgVarRegexp = /^img_.+$/i;
+            imgVarRegexp = /^img_.+$/i,
+            checkboxVarRegexp = /^checkbox_.+$/i;
         for (var k = 0; k < vars.length; k++) {
             if (imgVarRegexp.test(vars[k])) {
                 tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input type='file' accept='image/jpeg,image/png' class='j-field field_file' id='var_" + vars[k] + "'></div>";
+            } else if (checkboxVarRegexp.test(vars[k])) {
+                tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input type='checkbox' class='j-field' id='var_" + vars[k] + "'></div>";
             } else {
                 tmpl = tmpl + "<div><b>" + vars[k] + ":</b><input class='j-field field' id='var_" + vars[k] + "'></div>";
             }
@@ -61,6 +64,8 @@ var Ui = function(){
                         } else {
                             newVars[varname] = null;
                         }
+                    } else if (checkboxVarRegexp.test(varname)) {
+                        newVars[varname] = $('#var_' + varname).prop('checked') ? '1' : '0';
                     } else {
                         newVars[varname] = $('#var_' + varname).val();
                     }
