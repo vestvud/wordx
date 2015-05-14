@@ -217,11 +217,11 @@ var App = function(){
             //чекбокс
             } else if (/^checkbox_/i.test(varname)) {
                 tmpl =
-                '<w:p>' +
+//                '<w:p>' +
                     '<w:r>' +
                         '<w:fldChar w:fldCharType="begin">' +
                             '<w:ffData w:enabled="">' +
-                                '<w:name w:val="' + vars[varname] + '"/>' +
+                                '<w:name w:val="' + varname + '"/>' +
                                 '<w:calcOnExit w:val="0"/>' +
                                 '<w:checkBox w:sizeAuto="">' +
                                     '<w:default w:val="' + vars[varname] + '"/>' +
@@ -243,8 +243,8 @@ var App = function(){
                             '<w:rFonts w:ascii="MS Gothic" w:eastAsia="MS Gothic" w:hAnsi="MS Gothic" w:hint="eastAsia"/>' +
                         '</w:rPr>' +
                         '<w:t xml:space="preserve"></w:t>' + //какой-то текст тут
-                    '</w:r>' +
-                '</w:p>';
+                    '</w:r>' /*+
+                '</w:p>'*/;
 
                 return before + tmpl + after;
             //значение
