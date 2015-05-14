@@ -57,6 +57,7 @@ select {
 input[type=file] {
 	color: transparent;
 	font-size: 12pt;
+	  margin-left: 131px;
 }
 
 button,#download-button {	
@@ -74,10 +75,10 @@ button,#download-button {
 
 input[type=file]::-webkit-file-upload-button {
 	margin: 0px;
-	font-size: 12pt;
-	padding: 4px;
-	width: 159px;
-	height: 31px;
+	  font-size: 20px;
+  padding: 4px;
+  width: 202px;
+  height: 52px;
 	border-radius: 2px;
 	background: rgb(27, 142, 27);
 	color: #fff;
@@ -122,11 +123,11 @@ progress {
 }
 
 .instuction {
-	font-size: 18px;
+	font-size: 25px;
+	text-align: center;
+	margin-top: 45px !important;
 }
 
 .wrapper {
-}
-.container {
-	overflow: hidden;
+	text-align: center;
 }

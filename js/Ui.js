@@ -36,7 +36,7 @@ var Ui = function(){
         });
     };
     Ui.prototype.displayVariables = function(vars, callback){
-        var tmpl = '<span class="instuction">Заполните ключевые слова:</span>',
+        var tmpl = '<div class="instuction">Заполните, пожалуйста, ключевые слова:</div>',
             imgVarRegexp = /^img_.+$/i,
             checkboxVarRegexp = /^checkbox_.+$/i;
         for (var k = 0; k < vars.length; k++) {

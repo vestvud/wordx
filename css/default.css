@@ -44,7 +44,7 @@ a {
 	color: #3e5763;
 }
 
-.description {
+.title {
 	font-size: 1.5em;
 	margin-bottom: 30px;
 	margin-top: 30px;
@@ -52,7 +52,14 @@ a {
 	text-align: center;
 	font-weight: 200;
 }
-
+.description {
+	margin-bottom: 9px;
+	font-size: 18px;	
+	line-height: 22px;
+}
+.description__list {
+	margin: 0 0 55px 0;
+}
 .download {
 	padding-top: 20px;
 	float: right;
