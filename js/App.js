@@ -220,7 +220,7 @@ var App = function(){
                                 '<w:name w:val="' + vars[varname] + '"/>' +
                                 '<w:calcOnExit w:val="0"/>' +
                                 '<w:checkBox w:sizeAuto="">' +
-                                    '<w:default w:val="' + (vars[varname] ? '1' : '0') + '"/>' +
+                                    '<w:default w:val="' + vars[varname] + '"/>' +
                                 '</w:checkBox>' +
                             '</w:ffData>' +
                         '</w:fldChar>' +
