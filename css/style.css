@@ -115,6 +115,7 @@ progress {
 	margin-left: 12px;
 	height: 32px;
   	width: 250px;
+  	font-size: 16px;
 }
 .field_file {
     margin-left: 12px;
