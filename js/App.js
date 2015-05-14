@@ -184,9 +184,13 @@ var App = function(){
     App.prototype._findVars = function(text){
         var myRe = /{(?:<[^>]+?>)*?([a-zA-Zа-яА-Я][a-zA-Zа-яА-Я-_]*)(?:<[^>]+?>)*?}/g,
             vars = [],
+            varsAdded = {},
             match;
         while ((match = myRe.exec(text)) != null) {
-            vars.push(match[1]);
+            if (!match[1] in varsAdded) {
+                vars.push(match[1]);
+                varsAdded[match[1]] = true;
+            }
         }
         return vars;
     };
