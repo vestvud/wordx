@@ -187,7 +187,7 @@ var App = function(){
             varsAdded = {},
             match;
         while ((match = myRe.exec(text)) != null) {
-            if (!match[1] in varsAdded) {
+            if (!(match[1] in varsAdded)) {
                 vars.push(match[1]);
                 varsAdded[match[1]] = true;
             }
