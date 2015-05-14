@@ -182,7 +182,7 @@ var App = function(){
         return true;
     };
     App.prototype._findVars = function(text){
-        var myRe = /{(?:<[^>]+?>)*?([a-zA-Z][a-zA-Z_]*)(?:<[^>]+?>)*?}/g,
+        var myRe = /{(?:<[^>]+?>)*?([a-zA-Zа-яА-Я][a-zA-Zа-яА-Я-_]*)(?:<[^>]+?>)*?}/g,
             vars = [],
             match;
         while ((match = myRe.exec(text)) != null) {
@@ -191,7 +191,7 @@ var App = function(){
         return vars;
     };
     App.prototype._replaceVars = function(text, vars, rid){
-        var myRe = /{((?:<[^>]+?>)*?)([a-zA-Z][a-zA-Z_]*)((?:<[^>]+?>)*?)}/g;
+        var myRe = /{((?:<[^>]+?>)*?)([a-zA-Zа-яА-Я][a-zA-Zа-яА-Я-_]*)((?:<[^>]+?>)*?)}/g;
 
         text = text.replace(myRe, function(full, before, varname, after){
             var tmpl;
