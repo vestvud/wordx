@@ -59,26 +59,31 @@ input[type=file] {
 	font-size: 12pt;
 }
 
-button,#download-button {
+button,#download-button {	
 	margin: 0px;
 	font-size: 12pt;
 	padding: 4px;
-	border: solid 1px #AACFE4;
-	width: 209px;
-	border-radius: 5px;
-	box-shadow: 0px 0px 10px #ccc;
+	width: 159px;
+	height: 31px;
+	border-radius: 2px;
+	background: rgb(27, 142, 27);
+	color: #fff;
+	outline: none;
+	border: none;
 }
 
 input[type=file]::-webkit-file-upload-button {
 	margin: 0px;
 	font-size: 12pt;
 	padding: 4px;
-	border: solid 1px #AACFE4;
-	width: 209px;
+	width: 159px;
 	height: 31px;
-	border-radius: 5px;
-	box-shadow: 0px 0px 10px #ccc;
-}
+	border-radius: 2px;
+	background: rgb(27, 142, 27);
+	color: #fff;
+	outline: none;
+	border: none;
+	}
 
 #download-button {
 	height: 21px;
@@ -108,7 +113,8 @@ progress {
 
 .field {
 	margin-left: 12px;
-	height: 25px;
+	height: 32px;
+  	width: 250px;
 }
 .field_file {
     margin-left: 12px;
@@ -119,4 +125,7 @@ progress {
 }
 
 .wrapper {
+}
+.container {
+	overflow: hidden;
 }
