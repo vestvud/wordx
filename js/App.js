@@ -30,11 +30,13 @@ var App = function(){
                 that._processFile(function(text, vars){
                     that._ui.displayVariables(vars, function(vars){
                         that._injectImages(vars, function(){
-                            text = that._replaceVars(text, vars);
-                            that._replaceFile(text);
-                            that._getWordxBlob(function(blob){
-                                that._ui.showSaveDialog(blob, name, function(){
-                                    that.reset();
+                            that._setImageSizes(vars, function(){
+                                text = that._replaceVars(text, vars);
+                                that._replaceFile(text);
+                                that._getWordxBlob(function(blob){
+                                    that._ui.showSaveDialog(blob, name, function(){
+                                        that.reset();
+                                    });
                                 });
                             });
                         });
@@ -137,7 +139,8 @@ var App = function(){
         contentTypes = imgVars
             .map(function(imgVar){
                 var blob = new Blob([imgVar], {type: imgVar.type}),
-                    extension = imgVar.uniqueName.replace(/^.*\.([^\.]+)$/, '$1');
+                    extension = imgVar.uniqueName.replace(/^.*\.([^\.]+)$/, '$1'),
+                    image = new Image;
                 that.fs.root.addBlob(imgVar.uniqueName, blob);
                 return {
                     extension: extension,
@@ -194,6 +197,43 @@ var App = function(){
         }
         return vars;
     };
+    App.prototype._setImageSizes = function(vars, callback){
+        var images = [],
+            imagesLeft;
+
+        Object.getOwnPropertyNames(vars).forEach(function(varname){
+            if (varname.toLowerCase().indexOf('img_') !== 0) {
+                return;
+            }
+            if (vars[varname] == null) {
+                return;
+            }
+
+            images.push(vars[varname]);
+        });
+
+        if (!images.length) {
+            callback();
+        }
+
+        imagesLeft = images.length;
+        function imageDone(){
+            if (--imagesLeft <= 0) {
+                callback();
+            }
+        }
+
+        images.forEach(function(imgVar){
+            var blob = new Blob([imgVar], {type: imgVar.type}),
+                image = new Image;
+            image.onload = image.onerror = function(){
+                imgVar.width = image.width;
+                imgVar.height = image.height;
+                imageDone();
+            };
+            image.src = (window.URL || window.WebkitURL).createObjectURL(blob);
+        });
+    };
     App.prototype._replaceVars = function(text, vars, rid){
         var myRe = /{((?:<[^>]+?>)*?)([a-zA-Zа-яА-Я][a-zA-Zа-яА-Я-_]*)((?:<[^>]+?>)*?)}/g;
 
@@ -207,7 +247,7 @@ var App = function(){
                     tmpl = '';
                 } else {
                     tmpl = '<w:pict>' +
-                        '<v:shape id="myShape' + vars[varname].rid + '">' +
+                        '<v:shape id="myShape' + vars[varname].rid + '" style="width:' + vars[varname].width + '; height: ' + vars[varname].height + '">' +
                         '<v:imagedata r:id="rId' + vars[varname].rid + '"/>' +
                         '</v:shape>' +
                         '</w:pict>';
