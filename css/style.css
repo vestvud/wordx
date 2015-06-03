@@ -73,18 +73,18 @@ button,#download-button {
 	border: none;
 }
 
-input[type=file]::-webkit-file-upload-button {
+.getData {
 	margin: 0px;
-	  font-size: 20px;
-  padding: 4px;
-  width: 202px;
-  height: 52px;
+	font-size: 20px;
+	padding: 4px;
+	width: 202px;
+	height: 52px;
 	border-radius: 2px;
 	background: rgb(27, 142, 27);
 	color: #fff;
 	outline: none;
 	border: none;
-	}
+}
 
 #download-button {
 	height: 21px;
