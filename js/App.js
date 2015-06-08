@@ -1,13 +1,25 @@
+/**
+ * App - класс приложения заполнения wordx шаблонов на клиенте
+ */
 var App = function(){
     var FILE_NAME = 'word/document.xml',
         DEFAULT_DOWNLOAD_NAME = 'result.docx',
         WORDX_FILE_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
+    /**
+     * Конструктор приложения. Создает и инициализирует приложение.
+     * @constructor
+     */
     function App() {
         this._ui = new Ui;
         this._init();
     }
     App.KEEP_FILE_INPUT = true;
+    /**
+     * Инициализирует приложение - насатривает интерфейс и связывает бизнес-логику
+     * приложения с интерфейсом.
+     * @private
+     */
     App.prototype._init = function(){
         var that = this;
         this.busy = false;
@@ -47,6 +59,15 @@ var App = function(){
             });
         })
     };
+    /**
+     * Добавляет заданные MIME-типы в файл описания типов содержимого документа wordx.
+     * Это асинхронная функция.
+     * @param types массив простых объектов, описывающих MIME-типы, которые нужно добавить
+     * Формат массива [{type: 'тип', extension: 'расширение'}, ...]
+     * @param callback функция, вызываемая при успешном добавлении типов в файл
+     * @returns {boolean} возвращает false, если не удалось записать типы в файлы, или undefined
+     * @private
+     */
     App.prototype._addContentTypes = function(types, callback){
         var that = this;
         var filename = "[Content_Types].xml";
@@ -78,6 +99,16 @@ var App = function(){
             callback();
         });
     };
+    /**
+     * Связывает документ с изображениями, заданными для подстановки вместо
+     * переменных, с помощью файла связей документа docx.
+     * @param imgVars массив переменных шаблона типа "изображение"
+     * @param callback функция, которая будет вызывана, если подстановка
+     * прошла успешно
+     * @returns {boolean} возвращает false, если не удалось выполнить
+     * подстановку, иначе undefined
+     * @private
+     */
     App.prototype._addRels = function(imgVars, callback){
         var that = this;
         var filename = "word/_rels/document.xml.rels";
@@ -112,6 +143,13 @@ var App = function(){
             callback(imgVars);
         });
     };
+    /**
+     * Встраивает в документ изображения, указанные в качестве значений соответствующих
+     * переменных шаблона.
+     * @param vars Массив, описывающий переменные шаблона и их значения
+     * @param callback Функция, которая будет вызвана, если встаривание прошло успешно.
+     * @private
+     */
     App.prototype._injectImages = function(vars, callback){
         var that = this,
             imgVars = Object.getOwnPropertyNames(vars)
@@ -152,10 +190,24 @@ var App = function(){
             that._addRels(imgVars, callback);
         });
     };
+    /**
+     * Заменяет содержимое документа (только разметку самого документа,
+     * без других служебных файлов) на заданное.
+     * @param text новая разметка содержимого документа
+     * @private
+     */
     App.prototype._replaceFile = function(text){
         this.fs.remove(this.file);
         this.fs.root.addText(FILE_NAME, text);
     };
+    /**
+     * Возвращает документ в виде Blob объекта
+     * @param callback функция, которая будет вызвана,
+     * когда документ успешно преобразован в Blob
+     * обхект. Первым параметром это функции будет
+     * передан сам Blob объект документа
+     * @private
+     */
     App.prototype._getWordxBlob = function(callback){
         var that = this;
 
@@ -169,6 +221,15 @@ var App = function(){
             callback(blob);
         }, null, null);
     };
+    /**
+     * Извлекает из разметки документа переменные и передает их в функцию callback вместе
+     * с разметкой документа.
+     * @param callback функция, которая будет вызвана, когда разметка и переменные в ней
+     * извлечены. Первым параметром ей будет передана разметка, а вторым массив имен
+     * переменных
+     * @returns {boolean} возвращает false в случае неудачи, иначе true
+     * @private
+     */
     App.prototype._processFile = function(callback){
         var that = this;
 
@@ -184,6 +245,13 @@ var App = function(){
         });
         return true;
     };
+    /**
+     * Извлекает из переданной разметки имена переменных и возвращает их
+     * в виде массива.
+     * @param text разметка документа
+     * @returns {Array} массив найденных имент переменных
+     * @private
+     */
     App.prototype._findVars = function(text){
         var myRe = /{(?:<[^>]+?>)*?([a-zA-Zа-яА-Я][a-zA-Zа-яА-Я-_]*)(?:<[^>]+?>)*?}/g,
             vars = [],
@@ -197,6 +265,14 @@ var App = function(){
         }
         return vars;
     };
+    /**
+     * Перебирает переданный массив переменных шаблона со значениями и
+     * проставляет найденным в нем переменным-изображениям размеры.
+     * @param vars массив переменных шаблона со значениями
+     * @param callback функция, которая будет вызвана, когда обработка
+     * массива завершена
+     * @private
+     */
     App.prototype._setImageSizes = function(vars, callback){
         var images = [],
             imagesLeft;
@@ -234,7 +310,15 @@ var App = function(){
             image.src = (window.URL || window.WebkitURL).createObjectURL(blob);
         });
     };
-    App.prototype._replaceVars = function(text, vars, rid){
+    /**
+     * Заменяет в переданной разметке документа переменные шаблона на их значения
+     * (или на пустую строку, если значение не задано)
+     * @param text разметка документа
+     * @param vars массив переменных шаблона со значениями
+     * @returns string возвращает разметку после подстановки значений переменных
+     * @private
+     */
+    App.prototype._replaceVars = function(text, vars){
         var myRe = /{((?:<[^>]+?>)*?)([a-zA-Zа-яА-Я][a-zA-Zа-яА-Я-_]*)((?:<[^>]+?>)*?)}/g;
 
         text = text.replace(myRe, function(full, before, varname, after){
@@ -295,6 +379,11 @@ var App = function(){
 
         return text;
     };
+    /**
+     * Сбрасывает приложение в начальное состояние
+     * @param keepFileInput boolean параметр, определяющий нужно ли заново
+     * создавать виджет выбора файла (true - да, false - нет)
+     */
     App.prototype.reset = function(keepFileInput){
         this.fs = new zip.fs.FS();
         this._ui.reset(keepFileInput);
@@ -305,5 +394,6 @@ var App = function(){
 }();
 
 $(document).ready(function(){
+    //Создание и инициализация приложения
     var app = window.app = new App();
 });
