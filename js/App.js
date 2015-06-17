@@ -39,7 +39,12 @@ var App = function(){
             that._fileType = file._type || WORDX_FILE_TYPE;
 
             that.fs.importBlob(file, function(){
-                that._processFile(function(text, vars){
+                that._processFile(function(error, text, vars){
+                    if (error) {
+                        alert(error);
+                        that.reset();
+                        return;
+                    }
                     that._ui.displayVariables(vars, function(vars){
                         that._injectImages(vars, function(){
                             that._setImageSizes(vars, function(){
@@ -236,14 +241,91 @@ var App = function(){
         this.file = this.fs.find(FILE_NAME);
         if (!this.file) {
             alert('Файла не существует!');
+            callback('Файла не существует!');
             return false;
         }
         this.file.getText(function(text){
             //text = that._replaceVars(text);
-            var vars = that._findVars(text);
-            callback(text, vars);
+            that._normalizeMarkup(text, function(error, markup){
+                if (error) {
+                    callback(error);
+                    return;
+                }
+                var vars = that._findVars(markup);
+                callback(null, markup, vars);
+            });
         });
         return true;
+    };
+    App.prototype._normalizeMarkup = function(xml, callback){
+        kiss.parse(xml, {trim: false}, function(error, nodes){
+            if (error) {
+                callback(error);
+                return;
+            }
+
+            var root;
+            for (var i = 0; i < nodes.length; ++i) {
+                if (typeof nodes[i] === 'object' && nodes[i].name === 'w:document') {
+                    root = nodes[i];
+                    break;
+                }
+            }
+            if (!root) {
+                console.log('Не найден узел документа!');
+                callback('Не найден узел документа!');
+                return;
+            }
+
+            var state = 'NEUTRAL',
+                targetTextNode,
+                candidates = [];
+
+            traverse(root);
+            console.log(root);
+            callback(null, kiss.serialize(nodes));
+
+            function traverse(node){
+                var openBracketPos,
+                    closeBracketPos;
+                if (typeof node !== 'object') {
+                    return;
+                }
+                if (node.name === 'w:t' && node.text != null) {
+                    if (state === 'NEUTRAL') {
+                        openBracketPos = node.text.indexOf('{');
+                        if (openBracketPos !== -1 && node.text.indexOf('}', openBracketPos + 1) === -1) {
+                            state = 'VARIABLE';
+                            targetTextNode = node;
+                            candidates.length = 0;
+                        }
+                    } else if (state === 'VARIABLE') {
+                        closeBracketPos = node.text.indexOf('}');
+                        if (closeBracketPos === -1) {
+                            candidates.push(node);
+                        } else {
+                            targetTextNode.text += candidates
+                                .map(function(node){
+                                    var text = node.text;
+                                    node.text = '';
+                                    return text;
+                                }).join('');
+                            candidates.length = 0;
+                            targetTextNode.text += node.text.substring(0, closeBracketPos + 1);
+                            node.text = node.text.substr(closeBracketPos + 1);
+                            state = 'NEUTRAL';
+                            targetTextNode = null;
+                        }
+                    }
+                    return;
+                }
+                if (node.children) {
+                    for (var i = 0; i < node.children.length; ++i) {
+                        traverse(node.children[i]);
+                    }
+                }
+            }
+        });
     };
     /**
      * Извлекает из переданной разметки имена переменных и возвращает их
